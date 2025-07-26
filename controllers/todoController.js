@@ -8,7 +8,10 @@ export const getTodos = async (req, res) => {
     const result = await pool.query(
       "SELECT * FROM todos WHERE user_id = $1",
       [userId]
-    );
+      );
+      if (!result) {
+          res.send('Empty todo, Insert todo first')
+      }
     res.status(200).json(result.rows);
   } catch (err) {
     console.error("Error fetching todos:", err);
