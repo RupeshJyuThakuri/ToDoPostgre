@@ -1,6 +1,6 @@
 import pool from "../config/db.js";
 import bcrypt from "bcryptjs";
-import jwt from 'jsonwebtoken';
+import jwt from "jsonwebtoken";
 
 export const registerUser = async (req, res) => {
   const { username, password } = req.body;
@@ -43,11 +43,6 @@ export const registerUser = async (req, res) => {
   }
 };
 
-
-
-
-
-
 export const loginUser = async (req, res) => {
   const { username, password } = req.body;
 
@@ -64,12 +59,12 @@ export const loginUser = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid username or password" });
-      }
-      
+    }
+
     const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
-      
+
     res.status(200).json({
       user: { id: user.id, username: user.username },
       token,
@@ -79,5 +74,3 @@ export const loginUser = async (req, res) => {
     res.status(500).json({ message: "Server error during login" });
   }
 };
-
-

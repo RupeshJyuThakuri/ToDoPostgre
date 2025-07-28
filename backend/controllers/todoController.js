@@ -5,13 +5,9 @@ export const getTodos = async (req, res) => {
   const userId = req.user.userId;
 
   try {
-    const result = await pool.query(
-      "SELECT * FROM todos WHERE user_id = $1",
-      [userId]
-      );
-      if (!result) {
-          res.send('Empty todo, Insert todo first')
-      }
+    const result = await pool.query("SELECT * FROM todos WHERE user_id = $1", [
+      userId,
+    ]);
     res.status(200).json(result.rows);
   } catch (err) {
     console.error("Error fetching todos:", err);
@@ -39,7 +35,7 @@ export const createTodo = async (req, res) => {
 // update a todo
 export const updateTodo = async (req, res) => {
   const { id } = req.params;
-    const { text, completed } = req.body;
+  const { text, completed } = req.body;
   const userId = req.user.userId;
 
   try {
@@ -60,6 +56,39 @@ export const updateTodo = async (req, res) => {
     res.status(500).json({ message: "Server error while updating todo" });
   }
 };
+
+// patch request for checkbox
+export const todoCompletion = async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user.userId;
+
+  try {
+    const todoResult = await pool.query(
+      "SELECT completed FROM todos WHERE id = $1 AND user_id = $2",
+      [id, userId]
+    );
+
+    if (todoResult.rows.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "Todo not found or unauthorized" });
+    }
+
+    const currentStatus = todoResult.rows[0].completed;
+    const newStatus = !currentStatus;
+    
+    const updateResult = await pool.query(
+      "UPDATE todos SET completed = $1 WHERE id = $2 AND user_id = $3 RETURNING *",
+      [newStatus, id, userId]
+    );
+
+    res.status(200).json(updateResult.rows[0]);
+  } catch (err) {
+    console.error("Error toggling todo:", err);
+    res.status(500).json({ message: "Server error while toggling todo" });
+  }
+};
+
 
 // delete a todo
 export const deleteTodo = async (req, res) => {
